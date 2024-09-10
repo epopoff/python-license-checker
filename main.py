@@ -39,7 +39,7 @@ def parse_requirements(file_path, output_file):
                 package = re.split('==|>=|<=|>|<', line.strip())[0]
                 license_info = get_license(package)
                 # Записываем информацию в формате Markdown
-                md_file.write(f"- **{package}**: {license_info}\n")
+                md_file.write(f"- **{package}** - [link](https://pypi.org/pypi/{package}/): {license_info}\n")
                 
         print(f"Информация сохранена в файл {output_file}")
     
