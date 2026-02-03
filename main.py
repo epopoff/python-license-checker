@@ -4,10 +4,14 @@ import re
 def get_license(package_name):
     """Получает информацию о лицензии пакета с PyPI, включая classifiers."""
     url = f"https://pypi.org/pypi/{package_name}/json"
-    response = requests.get(url)
-    
+    headers = {"User-Agent": "python-license-checker/1.0"}
+    response = requests.get(url, headers=headers)
+
     if response.status_code == 200:
-        data = response.json()
+        try:
+            data = response.json()
+        except requests.exceptions.JSONDecodeError:
+            return "Ошибка: ответ не в формате JSON"
         # Проверяем поле 'license'
         license_info = data['info'].get('license')
         
@@ -35,8 +39,14 @@ def parse_requirements(file_path, output_file):
             md_file.write("# Список пакетов и их лицензий\n\n")
             
             for line in lines:
+                line = line.strip()
+                # Пропускаем пустые строки и комментарии
+                if not line or line.startswith('#'):
+                    continue
                 # Извлекаем имя пакета без версии (если версия указана)
-                package = re.split('==|>=|<=|>|<', line.strip())[0]
+                package = re.split(r'==|>=|<=|>|<|\[', line)[0].strip()
+                if not package:
+                    continue
                 license_info = get_license(package)
                 # Записываем информацию в формате Markdown
                 md_file.write(f"- **{package}** - [link](https://pypi.org/pypi/{package}/): {license_info}\n")
